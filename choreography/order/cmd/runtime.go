@@ -7,23 +7,25 @@ import (
 	"os/signal"
 	"syscall"
 
-	config "bitbucket.org/inseinc/report-service/config"
-	logger "bitbucket.org/inseinc/report-service/log"
+	logger "infra/log"
+
+	src "order-service/src"
+
 	"gorm.io/gorm"
 )
 
 type runtime struct {
-	appConf *config.AppConfig
-	logger  *logger.Logger
-	db      *gorm.DB
-	service *Service
+	appConf      *src.AppConfig
+	logger       *logger.Logger
+	db           *gorm.DB
+	orderHandler *src.OrderService
 }
 
 func NewRuntime() *runtime {
 	rt := runtime{}
 	var err error
 
-	if rt.appConf, err = config.BuildConfiguration(); err != nil {
+	if rt.appConf, err = src.BuildConfiguration(); err != nil {
 		fmt.Sprintf("can't load application configuration: %v", err)
 	}
 
@@ -34,11 +36,14 @@ func NewRuntime() *runtime {
 
 	rt.logger = logger.New()
 
-	service, err := NewService(rt.logger)
-	if err != nil {
-		rt.logger.Error("creating new service instance", err)
-	}
-	rt.service = service
+	orderDomain := src.NewOrderDomain(rt.logger)
+	rt.orderHandler = src.NewOrderHandler(rt.logger, orderDomain)
+
+	// service, err := NewService(rt.logger)
+	// if err != nil {
+	// 	rt.logger.Error("creating new service instance", err)
+	// }
+	// rt.service = service
 
 	return &rt
 }
