@@ -1,8 +1,10 @@
-package src
+package cmd
 
 import (
 	"os"
 	"time"
+
+	"infra/db"
 
 	"github.com/joho/godotenv"
 )
@@ -23,18 +25,9 @@ type HttpServerConfig struct {
 	Port string
 }
 
-type DatabaseConfig struct {
-	Uri                   string
-	Driver                string
-	Dialect               string
-	MaxOpenConnections    int
-	MaxIdleConnections    int
-	MaxConnectionLifetime time.Duration
-}
-
 type AppConfig struct {
 	HttpServerConfig *HttpServerConfig
-	DatabaseConfig   *DatabaseConfig
+	DatabaseConfig   *db.DatabaseConfig
 }
 
 func BuildConfiguration() (*AppConfig, error) {
@@ -50,16 +43,6 @@ func BuildConfiguration() (*AppConfig, error) {
 	_ = godotenv.Load(".env.local")
 	_ = godotenv.Load()
 
-	// openConnections := os.Getenv(MaxOpenConnections) //, err := strconv.Atoi(envOrDefault(MaxOpenConnections, "25"))
-	// // if err != nil {
-	// // 	return nil, fmt.Errorf("MAX_OPEN_CONNECTIONS environment variable not set")
-	// // }
-
-	// idleConnections, err := strconv.Atoi(envOrDefault(MaxIdleConnections, "25"))
-	// if err != nil {
-	// 	return nil, fmt.Errorf("MAX_IDLE_CONNECTIONS environment variable not set")
-	// }
-
 	connectionLifetime, _ := time.ParseDuration("5m")
 
 	return &AppConfig{
@@ -67,7 +50,7 @@ func BuildConfiguration() (*AppConfig, error) {
 			envOrDefault(HttpServerHost, "localhost"),
 			envOrDefault(HttpServerPort, "3000"),
 		},
-		&DatabaseConfig{
+		&db.DatabaseConfig{
 			Uri:                   os.Getenv(DatabaseUri),
 			Driver:                os.Getenv(DatabaseDriver),
 			Dialect:               os.Getenv(DatabaseDialect),
