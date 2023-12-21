@@ -3,7 +3,7 @@ package src
 import (
 	"net/http"
 
-	"infra/log"
+	"infra/common/log"
 
 	"github.com/labstack/echo/v4"
 )

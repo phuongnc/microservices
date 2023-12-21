@@ -6,11 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	logger "infra/log"
+	logger "infra/common/log"
 
 	src "order-service/src"
 
-	"infra/db"
+	"infra/common/db"
+	"infra/order"
 
 	"gorm.io/gorm"
 )
@@ -36,7 +37,8 @@ func NewRuntime() *runtime {
 		rt.logger.Error("Can not connect to database ", err)
 	}
 
-	orderDomain := src.NewOrderDomain(rt.logger)
+	orderRepository := order.NewOrderRepo()
+	orderDomain := src.NewOrderDomain(rt.logger, orderRepository)
 	rt.orderHandler = src.NewOrderHandler(rt.logger, orderDomain)
 
 	return &rt

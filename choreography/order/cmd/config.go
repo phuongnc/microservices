@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"infra/db"
+	"infra/common/db"
 
 	"github.com/joho/godotenv"
 )

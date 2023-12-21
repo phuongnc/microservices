@@ -1,7 +1,8 @@
 package src
 
 import (
-	"infra/log"
+	"infra/common/log"
+	"infra/order"
 
 	"github.com/labstack/echo/v4"
 )
@@ -11,26 +12,22 @@ type OrderDomain interface {
 }
 
 type orderDomain struct {
-	logger *log.Logger
-	//orderRepo repo.SaleSummaryRepo
+	logger    *log.Logger
+	orderRepo order.OrderRepository
 }
 
 func NewOrderDomain(
 	logger *log.Logger,
-	//orderRepo repo.SaleSummaryRepo,
+	orderRepo order.OrderRepository,
 ) OrderDomain {
 	return &orderDomain{
 		logger,
-		//orderRepo,
+		orderRepo,
 	}
 }
 
 func (s *orderDomain) CreateOrder(ctx echo.Context) error {
-	s.logger.Info("Getting sale summary data")
-	// result, err := s.saleSummaryRepo.Query(ctx).ByProcessingDateRange(fromDate, toDate).ResultList()
-	// if err != nil {
-	// 	s.logger.Error("Can not get sale summary data", err)
-	// 	return nil, err
-	// }
-	return nil
+	s.logger.Info("creating order")
+
+	return s.orderRepo.CreateOrder(ctx, &order.OrderModel{})
 }

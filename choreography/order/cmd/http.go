@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"infra/log"
-	"infra/middleware"
+	"infra/common/log"
+	"infra/common/middleware"
 	"order-service/src"
 
 	"net/http"
