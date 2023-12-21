@@ -31,14 +31,6 @@ type AppConfig struct {
 }
 
 func BuildConfiguration() (*AppConfig, error) {
-	// if len(os.Getenv("ENV_CONFIG_MAP")) > 0 {
-	// 	_ = godotenv.Load(os.Getenv("ENV_CONFIG_MAP"))
-	// }
-
-	// env := envOrDefault("ENVIRONMENT", "local")
-	// if env == "" {
-	// 	env = "local"
-	// }
 
 	_ = godotenv.Load(".env.local")
 	_ = godotenv.Load()

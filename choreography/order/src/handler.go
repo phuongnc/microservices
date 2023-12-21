@@ -32,6 +32,11 @@ func (rc *orderHandler) RegisterEndpoints(echo *echo.Group) {
 	echo.POST("/create-order", rc.CreateOrder)
 }
 
+func (rc *orderHandler) HealthCheck(c echo.Context) error {
+
+	return c.JSON(http.StatusOK, "Ok")
+}
+
 func (rc *orderHandler) CreateOrder(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, nil)

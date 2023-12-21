@@ -8,6 +8,8 @@ import (
 	"infra/middleware"
 	"order-service/src"
 
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -33,14 +35,21 @@ func (a *Api) Run() error {
 }
 
 func (a *Api) Stop() {
+	a.logger.Info("Shutdown order service")
 	_ = a.echo.Shutdown(context.Background())
 }
 
 func createHttpServer(db *gorm.DB, orderHandler src.OrderHandler, log *log.Logger) *echo.Echo {
 	e := echo.New()
+	e.GET("/health", healthCheck)
 	path := e.Group("/orders")
+
 	e.Use(middleware.HttpDb(db))
 	e.Use(middleware.Cors())
 	orderHandler.RegisterEndpoints(path)
 	return e
+}
+
+func healthCheck(c echo.Context) error {
+	return c.JSON(http.StatusOK, "Running")
 }
