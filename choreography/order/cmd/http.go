@@ -38,9 +38,9 @@ func (a *Api) Stop() {
 
 func createHttpServer(db *gorm.DB, orderHandler src.OrderHandler, log *log.Logger) *echo.Echo {
 	e := echo.New()
-	v1 := e.Group("/v1")
+	path := e.Group("/orders")
 	e.Use(middleware.HttpDb(db))
 	e.Use(middleware.Cors())
-	orderHandler.RegisterEndpoints(v1)
+	orderHandler.RegisterEndpoints(path)
 	return e
 }
