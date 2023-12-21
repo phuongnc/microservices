@@ -38,8 +38,7 @@ func NewRuntime() *runtime {
 	}
 
 	orderRepository := order.NewOrderRepo()
-	orderDomain := src.NewOrderDomain(rt.logger, orderRepository)
-	rt.orderHandler = src.NewOrderHandler(rt.logger, orderDomain)
+	rt.orderHandler = src.NewOrderHandler(rt.logger, orderRepository)
 
 	return &rt
 }

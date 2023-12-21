@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"infra/common/log"
+	"infra/order"
 
 	"github.com/labstack/echo/v4"
 )
@@ -15,17 +16,17 @@ type OrderHandler interface {
 
 func NewOrderHandler(
 	logger *log.Logger,
-	service OrderDomain,
+	orderRepo order.OrderRepository,
 ) OrderHandler {
 	return &orderHandler{
-		logger:  logger,
-		service: service,
+		logger:    logger,
+		orderRepo: orderRepo,
 	}
 }
 
 type orderHandler struct {
-	logger  *log.Logger
-	service OrderDomain
+	logger    *log.Logger
+	orderRepo order.OrderRepository
 }
 
 func (rc *orderHandler) RegisterEndpoints(echo *echo.Group) {
@@ -38,6 +39,13 @@ func (rc *orderHandler) HealthCheck(c echo.Context) error {
 }
 
 func (rc *orderHandler) CreateOrder(c echo.Context) error {
-
+	req := &order.OrderDto{}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid Params")
+	}
+	model := order.MapOrderToModel(req)
+	if err := rc.orderRepo.CreateOrder(c, model); err != nil {
+		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
+	}
 	return c.JSON(http.StatusOK, nil)
 }
