@@ -36,6 +36,7 @@ func NewRuntime() *runtime {
 	if err != nil {
 		rt.logger.Error("Can not connect to database ", err)
 	}
+	rt.migrateDB()
 
 	orderRepository := order.NewOrderRepo()
 	rt.orderHandler = src.NewOrderHandler(rt.logger, orderRepository)
@@ -50,6 +51,10 @@ func (rt *runtime) Serve() {
 
 	// run kafka
 	//kafka.TestKafka()
+}
+
+func (rt *runtime) migrateDB() {
+	rt.db.Table("order").AutoMigrate(&order.OrderEntity{})
 }
 
 func registerSignalsHandler(api *Api) {
