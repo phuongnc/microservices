@@ -39,7 +39,8 @@ func NewRuntime() *runtime {
 	rt.migrateDB()
 
 	orderRepository := order.NewOrderRepo()
-	rt.orderHandler = src.NewOrderHandler(rt.logger, orderRepository)
+	orderService := src.NewOrderService(rt.logger, orderRepository)
+	rt.orderHandler = src.NewOrderHandler(rt.logger, orderService)
 
 	return &rt
 }

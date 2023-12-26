@@ -16,17 +16,17 @@ type OrderHandler interface {
 
 func NewOrderHandler(
 	logger *log.Logger,
-	orderRepo order.OrderRepository,
+	orderService OrderService,
 ) OrderHandler {
 	return &orderHandler{
-		logger:    logger,
-		orderRepo: orderRepo,
+		logger:       logger,
+		orderService: orderService,
 	}
 }
 
 type orderHandler struct {
-	logger    *log.Logger
-	orderRepo order.OrderRepository
+	logger       *log.Logger
+	orderService OrderService
 }
 
 func (rc *orderHandler) RegisterEndpoints(echo *echo.Group) {
@@ -44,7 +44,9 @@ func (rc *orderHandler) CreateOrder(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid Params")
 	}
 	model := order.MapOrderToModel(req)
-	if err := rc.orderRepo.CreateOrder(c, model); err != nil {
+	_, err := rc.orderService.CreateOrder(c, model)
+
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
 	}
 	return c.JSON(http.StatusOK, nil)
