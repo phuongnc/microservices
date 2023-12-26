@@ -1,8 +1,8 @@
 package order
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type OrderRepository interface {
@@ -34,7 +34,7 @@ func (repo *orderRepo) CreateOrder(ctx echo.Context, o *OrderModel) error {
 func (repo *orderRepo) UpdateOrder(ctx echo.Context, o *OrderModel) error {
 	db := ctx.Get("db").(*gorm.DB)
 	orderGM := mapOrderToGorm(o)
-	return db.Model(orderGM).Update(orderGM).Error
+	return db.Model(orderGM).Updates(orderGM).Error
 }
 
 func (repo *orderRepo) Query(ctx echo.Context) OrderQuery {
@@ -54,7 +54,7 @@ func (query orderQuery) Result() (*OrderModel, error) {
 
 	err := query.db.First(&result).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
 		return nil, err

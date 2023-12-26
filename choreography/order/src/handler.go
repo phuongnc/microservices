@@ -30,7 +30,7 @@ type orderHandler struct {
 }
 
 func (rc *orderHandler) RegisterEndpoints(echo *echo.Group) {
-	echo.POST("/create-order", rc.CreateOrder)
+	echo.POST("", rc.CreateOrder)
 }
 
 func (rc *orderHandler) HealthCheck(c echo.Context) error {

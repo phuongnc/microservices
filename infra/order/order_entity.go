@@ -11,3 +11,7 @@ type OrderEntity struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+func (o *OrderEntity) TableName() string {
+	return "order"
+}

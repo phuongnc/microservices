@@ -1,17 +1,59 @@
 package order
 
 func MapOrderToModel(order *OrderDto) *OrderModel {
-	return nil
+	if order == nil {
+		return nil
+	}
+	return &OrderModel{
+		Id:     order.Id,
+		UserId: order.UserId,
+		Amount: order.Amount,
+		Detail: order.Detail,
+	}
 }
 
-func mapOrderFromModel(orderGM *OrderModel) *OrderDto {
-	return nil
+func mapOrderFromModel(order *OrderModel) *OrderDto {
+	if order == nil {
+		return nil
+	}
+	return &OrderDto{
+		Id:        order.Id,
+		UserId:    order.UserId,
+		Amount:    order.Amount,
+		Detail:    order.Detail,
+		Status:    order.Status,
+		CreatedAt: order.CreatedAt,
+		UpdatedAt: order.UpdatedAt,
+	}
+
 }
 
 func mapOrderToGorm(order *OrderModel) *OrderEntity {
-	return nil
+	if order == nil {
+		return nil
+	}
+	return &OrderEntity{
+		Id:        order.Id,
+		UserId:    order.UserId,
+		Amount:    order.Amount,
+		Detail:    order.Detail,
+		Status:    order.Status,
+		CreatedAt: order.CreatedAt,
+		UpdatedAt: order.UpdatedAt,
+	}
 }
 
-func mapOrderFromGorm(orderGM *OrderEntity) *OrderModel {
-	return nil
+func mapOrderFromGorm(order *OrderEntity) *OrderModel {
+	if order == nil {
+		return nil
+	}
+	return &OrderModel{
+		Id:        order.Id,
+		UserId:    order.UserId,
+		Amount:    order.Amount,
+		Detail:    order.Detail,
+		Status:    order.Status,
+		CreatedAt: order.CreatedAt,
+		UpdatedAt: order.UpdatedAt,
+	}
 }

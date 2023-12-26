@@ -20,12 +20,12 @@ type Api struct {
 	logger *log.Logger
 }
 
-func NewApi(config *AppConfig, db *gorm.DB, logger *log.Logger, orderHandler src.OrderHandler) *Api {
+func NewApi(config *AppConfig, gormDB *gorm.DB, logger *log.Logger, orderHandler src.OrderHandler) *Api {
 	a := &Api{
 		config: config,
 		logger: logger,
 	}
-	a.echo = createHttpServer(db, orderHandler, a.logger)
+	a.echo = createHttpServer(gormDB, orderHandler, a.logger)
 	return a
 }
 
@@ -39,12 +39,12 @@ func (a *Api) Stop() {
 	_ = a.echo.Shutdown(context.Background())
 }
 
-func createHttpServer(db *gorm.DB, orderHandler src.OrderHandler, log *log.Logger) *echo.Echo {
+func createHttpServer(gormDB *gorm.DB, orderHandler src.OrderHandler, log *log.Logger) *echo.Echo {
 	e := echo.New()
 	e.GET("/health", healthCheck)
 	path := e.Group("/orders")
 
-	e.Use(middleware.HttpDb(db))
+	e.Use(middleware.HttpDb(gormDB))
 	e.Use(middleware.Cors())
 	orderHandler.RegisterEndpoints(path)
 	return e
