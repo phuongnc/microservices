@@ -6,8 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"infra/common/kafka"
 	logger "infra/common/log"
 
+	"order-service/event"
 	src "order-service/src"
 
 	"infra/common/db"
@@ -17,10 +19,11 @@ import (
 )
 
 type runtime struct {
-	appConf      *AppConfig
-	logger       *logger.Logger
-	db           *gorm.DB
-	orderHandler src.OrderHandler
+	appConf        *AppConfig
+	logger         *logger.Logger
+	db             *gorm.DB
+	orderHandler   src.OrderHandler
+	orderPublisher event.OrderPublisher
 }
 
 func NewRuntime() *runtime {
@@ -38,8 +41,18 @@ func NewRuntime() *runtime {
 	}
 	rt.migrateDB()
 
+	//setup kafka publisher
+	kafkaConfig := &kafka.KafkaProducerConfiguration{
+		BootstrapServers:  rt.appConf.KafkaConfig.BootstrapServers,
+		Topic:             rt.appConf.KafkaConfig.OrderEventTopic,
+		TopicAutoCreation: true,
+	}
+	producer := kafka.NewKafkaMessageProducer(kafkaConfig)
+	rt.orderPublisher = event.NewOrderPublisher(producer)
+	//setup kafka consumer
+
 	orderRepository := order.NewOrderRepo()
-	orderService := src.NewOrderService(rt.logger, orderRepository)
+	orderService := src.NewOrderService(rt.logger, orderRepository, rt.orderPublisher)
 	rt.orderHandler = src.NewOrderHandler(rt.logger, orderService)
 
 	return &rt
@@ -47,18 +60,15 @@ func NewRuntime() *runtime {
 
 func (rt *runtime) Serve() {
 	api := NewApi(rt.appConf, rt.db, rt.logger, rt.orderHandler)
-	registerSignalsHandler(api)
+	rt.registerSignalsHandler(api)
 	api.Run()
-
-	// run kafka
-	//kafka.TestKafka()
 }
 
 func (rt *runtime) migrateDB() {
 	rt.db.Table("order").AutoMigrate(&order.OrderEntity{})
 }
 
-func registerSignalsHandler(api *Api) {
+func (rt *runtime) registerSignalsHandler(api *Api) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
@@ -66,5 +76,6 @@ func registerSignalsHandler(api *Api) {
 		sig := <-sigs
 		log.Printf("Received termination signal: [%s], stopping app", sig)
 		api.Stop()
+		rt.orderPublisher.Destroy()
 	}()
 }

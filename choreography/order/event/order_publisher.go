@@ -1,50 +1,32 @@
 package event
 
 import (
-	"encoding/json"
-	"fmt"
-	"infra/common/kafka/protocol"
-	"time"
+	"infra/common/kafka"
+	"infra/order"
 
-	"github.com/segmentio/kafka-go"
+	"github.com/google/uuid"
 )
 
-type KafkaProducer interface {
+type OrderPublisher interface {
+	PublishOrderEvent(order *order.OrderModel) error
+	Destroy() error
 }
 
-type kafkaProducer struct {
-	bootstrapServer []string
-	topic           string
-	producer        *protocol.KafkaMessageProducer
-}
-
-func (k *kafkaProducer) SetupKafkaProducer() {
-	producerConfig := &protocol.KafkaProducerConfiguration{
-		BootstrapServers:  k.bootstrapServer,
-		Topic:             k.topic,
-		MaxAttempts:       10,
-		Balancer:          &kafka.Hash{},
-		TopicAutoCreation: true,
-	}
-	k.producer = protocol.NewKafkaMessageProducer(producerConfig)
-}
-
-func (k *kafkaProducer) BuildMessage(key string, body interface{}) *protocol.Message {
-	fmt.Println("Message: ", body)
-	data, err := json.Marshal(body)
-
-	if err != nil {
-		panic("Marshalling error")
-	}
-
-	return &protocol.Message{
-		Topic:     k.topic,
-		Timestamp: time.Now(),
-		Key:       key,
-		Data:      data,
+func NewOrderPublisher(producer kafka.KafkaMessageProducer) OrderPublisher {
+	return &orderPublisher{
+		producer: producer,
 	}
 }
 
-func (k *kafkaProducer) PublishMessage(msg *protocol.Message) error {
-	return k.producer.PublishMessage(msg)
+type orderPublisher struct {
+	producer kafka.KafkaMessageProducer
+}
+
+func (o *orderPublisher) PublishOrderEvent(order *order.OrderModel) error {
+	orderEvent, _ := o.producer.BuildMessage(uuid.New().String(), order)
+	return o.producer.PublishMessage(orderEvent)
+}
+
+func (o *orderPublisher) Destroy() error {
+	return o.producer.Destroy()
 }

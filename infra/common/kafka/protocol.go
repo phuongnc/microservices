@@ -3,8 +3,6 @@ package kafka
 import (
 	"fmt"
 	"time"
-
-	"github.com/segmentio/kafka-go"
 )
 
 /*
@@ -44,8 +42,6 @@ type MessageConsumer interface {
 type KafkaProducerConfiguration struct {
 	BootstrapServers  []string
 	Topic             string
-	MaxAttempts       int
-	Balancer          kafka.Balancer
 	TopicAutoCreation bool
 }
 

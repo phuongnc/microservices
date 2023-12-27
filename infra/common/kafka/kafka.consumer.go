@@ -20,21 +20,13 @@ func NewKafkaMessageConsumer(configuration *KafkaConsumerConfiguration) *KafkaMe
 func (k *KafkaMessageConsumer) Initialize() error {
 	c := k.configuration
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: c.BootstrapServers,
-		GroupID: c.GroupID,
-		Topic:   c.Topic,
-		//QueueCapacity:     0,
-		MaxBytes: 10e6, // 10MB
-		//MaxWait:           0,
-		CommitInterval: 1, // batches commits in 1 second interval
-		//SessionTimeout:    0,
-		//JoinGroupBackoff:  0,
-		//RetentionTime:     0,
-		//StartOffset:       0,
-		//ReadBackoffMin:    0,
-		//ReadBackoffMax:    0,
-		Logger:      kafka.LoggerFunc(KafkaPrintLogger),
-		ErrorLogger: kafka.LoggerFunc(KafkaPrintLogger),
+		Brokers:        c.BootstrapServers,
+		GroupID:        c.GroupID,
+		Topic:          c.Topic,
+		MaxBytes:       10e6, // 10MB
+		CommitInterval: 1,    // batches commits in 1 second interval
+		Logger:         kafka.LoggerFunc(KafkaPrintLogger),
+		ErrorLogger:    kafka.LoggerFunc(KafkaPrintLogger),
 	})
 	k.reader = reader
 	return nil

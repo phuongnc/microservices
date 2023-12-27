@@ -9,10 +9,9 @@ import (
 )
 
 type KafkaMessageProducer interface {
-	Initialize() error
-	Destroy() error
 	PublishMessage(message *Message) error
 	BuildMessage(key string, body interface{}) (*Message, error)
+	Destroy() error
 }
 
 type kafkaMessageProducer struct {
@@ -21,17 +20,19 @@ type kafkaMessageProducer struct {
 }
 
 func NewKafkaMessageProducer(configuration *KafkaProducerConfiguration) KafkaMessageProducer {
-	return &kafkaMessageProducer{configuration: configuration}
+	producer := &kafkaMessageProducer{configuration: configuration}
+	producer.initialize()
+	return producer
 }
 
-func (k *kafkaMessageProducer) Initialize() error {
+func (k *kafkaMessageProducer) initialize() {
 	c := k.configuration
 	w := &kafka.Writer{
 		Addr:                   kafka.TCP(c.BootstrapServers...),
 		Topic:                  c.Topic,
-		Balancer:               c.Balancer,
+		Balancer:               &kafka.Hash{},
 		BatchSize:              1, // important!
-		MaxAttempts:            c.MaxAttempts,
+		MaxAttempts:            10,
 		ReadTimeout:            time.Second * 5,
 		WriteTimeout:           time.Second * 5,
 		Async:                  false,               // important! Use this only if you don't care about guarantees of whether the messages were written to kafka.
@@ -40,7 +41,6 @@ func (k *kafkaMessageProducer) Initialize() error {
 		ErrorLogger:            kafka.LoggerFunc(KafkaPrintLogger),
 	}
 	k.writer = w
-	return nil
 }
 
 func (k *kafkaMessageProducer) Destroy() error {

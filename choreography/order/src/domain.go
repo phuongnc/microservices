@@ -4,6 +4,7 @@ import (
 	"errors"
 	"infra/common/log"
 	"infra/order"
+	"order-service/event"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,16 +16,18 @@ type OrderService interface {
 	UpdateOrder(ctx echo.Context, order *order.OrderModel) (*order.OrderModel, error)
 }
 
-func NewOrderService(logger *log.Logger, orderRepo order.OrderRepository) OrderService {
+func NewOrderService(logger *log.Logger, orderRepo order.OrderRepository, orderPublisher event.OrderPublisher) OrderService {
 	return &orderService{
-		logger:    logger,
-		orderRepo: orderRepo,
+		logger:         logger,
+		orderRepo:      orderRepo,
+		orderPublisher: orderPublisher,
 	}
 }
 
 type orderService struct {
-	logger    *log.Logger
-	orderRepo order.OrderRepository
+	logger         *log.Logger
+	orderRepo      order.OrderRepository
+	orderPublisher event.OrderPublisher
 }
 
 func (o *orderService) CreateOrder(ctx echo.Context, order *order.OrderModel) (*order.OrderModel, error) {
