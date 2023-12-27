@@ -1,22 +1,30 @@
-package protocol
+package kafka
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/segmentio/kafka-go"
 )
 
-type KafkaMessageProducer struct {
+type KafkaMessageProducer interface {
+	Initialize() error
+	Destroy() error
+	PublishMessage(message *Message) error
+	BuildMessage(key string, body interface{}) (*Message, error)
+}
+
+type kafkaMessageProducer struct {
 	configuration *KafkaProducerConfiguration
 	writer        *kafka.Writer
 }
 
-func NewKafkaMessageProducer(configuration *KafkaProducerConfiguration) *KafkaMessageProducer {
-	return &KafkaMessageProducer{configuration: configuration}
+func NewKafkaMessageProducer(configuration *KafkaProducerConfiguration) KafkaMessageProducer {
+	return &kafkaMessageProducer{configuration: configuration}
 }
 
-func (k *KafkaMessageProducer) Initialize() error {
+func (k *kafkaMessageProducer) Initialize() error {
 	c := k.configuration
 	w := &kafka.Writer{
 		Addr:                   kafka.TCP(c.BootstrapServers...),
@@ -35,33 +43,32 @@ func (k *KafkaMessageProducer) Initialize() error {
 	return nil
 }
 
-func (k *KafkaMessageProducer) Destroy() error {
-	// TODO error handling and logging
+func (k *kafkaMessageProducer) Destroy() error {
 	return k.writer.Close()
 }
 
-func (k *KafkaMessageProducer) PublishMessage(message *Message) error {
+func (k *kafkaMessageProducer) PublishMessage(message *Message) error {
 	if err := k.writer.WriteMessages(context.Background(), kafka.Message{
 		Key:        []byte(message.Key),
 		Value:      message.Data,
 		WriterData: nil, // this can be handy with Completion function for writer
 		Time:       message.Timestamp,
 	}); err != nil {
-		// TODO error handling and logging
-		/*
-			docs
-			When the method returns an error, it may be of type kafka.WriteError to allow the caller
-			to determine the status of each message.
-		*/
 		return err
 	}
 	return nil
 }
 
-func (k *KafkaMessageProducer) Name() string {
-	return "KafkaMessageProducer"
-}
+func (k *kafkaMessageProducer) BuildMessage(key string, body interface{}) (*Message, error) {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
 
-func (k *KafkaMessageProducer) Topic() string {
-	return k.configuration.Topic
+	return &Message{
+		Topic:     k.configuration.Topic,
+		Timestamp: time.Now(),
+		Key:       key,
+		Data:      data,
+	}, nil
 }
