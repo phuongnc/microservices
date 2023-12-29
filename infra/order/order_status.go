@@ -1,0 +1,10 @@
+package order
+
+const (
+	ORDER_CREATED            string = "ORDER_CREATED"
+	ORDER_PAID               string = "ORDER_PAID"
+	ORDER_PAYMENT_FAILED     string = "ORDER_PAYMENT_FAILED"
+	ORDER_PREPARATION_FAILED string = "ORDER_PREPARATION_FAILED"
+	ORDER_REFUNDED           string = "ORDER_REFUNDED"
+	ORDER_DELIVERED          string = "ORDER_DELIVERED"
+)

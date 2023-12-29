@@ -1,6 +1,7 @@
 package src
 
 import (
+	"context"
 	"net/http"
 
 	"infra/common/log"
@@ -34,7 +35,6 @@ func (rc *orderHandler) RegisterEndpoints(echo *echo.Group) {
 }
 
 func (rc *orderHandler) HealthCheck(c echo.Context) error {
-
 	return c.JSON(http.StatusOK, "Ok")
 }
 
@@ -43,8 +43,10 @@ func (rc *orderHandler) CreateOrder(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid Params")
 	}
+
+	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
 	model := order.MapOrderToModel(req)
-	_, err := rc.orderService.CreateOrder(c, model)
+	_, err := rc.orderService.CreateOrder(ctx, model)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "Internal Server Error")

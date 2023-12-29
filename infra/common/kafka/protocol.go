@@ -47,7 +47,7 @@ type KafkaProducerConfiguration struct {
 
 type KafkaConsumerConfiguration struct {
 	BootstrapServers []string
-	Topic            string
+	Topics           []string
 	GroupID          string
 	AutoCommit       bool
 }

@@ -1,13 +1,15 @@
 package order
 
 import (
+	"context"
+
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
 type OrderRepository interface {
-	CreateOrder(ctx echo.Context, order *OrderModel) error
-	UpdateOrder(ctx echo.Context, order *OrderModel) error
+	CreateOrder(ctx context.Context, order *OrderModel) error
+	UpdateOrder(ctx context.Context, order *OrderModel) error
 	Query(ctx echo.Context) OrderQuery
 }
 
@@ -22,8 +24,8 @@ func NewOrderRepo() OrderRepository {
 
 type orderRepo struct{}
 
-func (repo *orderRepo) CreateOrder(ctx echo.Context, o *OrderModel) error {
-	db := ctx.Get("db").(*gorm.DB)
+func (repo *orderRepo) CreateOrder(ctx context.Context, o *OrderModel) error {
+	db := ctx.Value("db").(*gorm.DB)
 	orderGM := mapOrderToGorm(o)
 	if err := db.Create(orderGM).Error; err != nil {
 		return err
@@ -31,10 +33,11 @@ func (repo *orderRepo) CreateOrder(ctx echo.Context, o *OrderModel) error {
 	return nil
 }
 
-func (repo *orderRepo) UpdateOrder(ctx echo.Context, o *OrderModel) error {
-	db := ctx.Get("db").(*gorm.DB)
-	orderGM := mapOrderToGorm(o)
-	return db.Model(orderGM).Updates(orderGM).Error
+func (repo *orderRepo) UpdateOrder(ctx context.Context, o *OrderModel) error {
+	// db := ctx.Get("db").(*gorm.DB)
+	// orderGM := mapOrderToGorm(o)
+	// return db.Model(orderGM).Updates(orderGM).Error
+	return nil
 }
 
 func (repo *orderRepo) Query(ctx echo.Context) OrderQuery {

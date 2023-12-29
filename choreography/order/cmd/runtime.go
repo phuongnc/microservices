@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -41,6 +42,10 @@ func NewRuntime() *runtime {
 	}
 	rt.migrateDB()
 
+	orderRepository := order.NewOrderRepo()
+	orderService := src.NewOrderService(rt.logger, orderRepository, rt.orderPublisher)
+	rt.orderHandler = src.NewOrderHandler(rt.logger, orderService)
+
 	//setup kafka publisher
 	kafkaConfig := &kafka.KafkaProducerConfiguration{
 		BootstrapServers:  rt.appConf.KafkaConfig.BootstrapServers,
@@ -50,10 +55,15 @@ func NewRuntime() *runtime {
 	producer := kafka.NewKafkaMessageProducer(kafkaConfig)
 	rt.orderPublisher = event.NewOrderPublisher(producer)
 	//setup kafka consumer
-
-	orderRepository := order.NewOrderRepo()
-	orderService := src.NewOrderService(rt.logger, orderRepository, rt.orderPublisher)
-	rt.orderHandler = src.NewOrderHandler(rt.logger, orderService)
+	kafkaConsumerConfig := &kafka.KafkaConsumerConfiguration{
+		BootstrapServers: rt.appConf.KafkaConfig.BootstrapServers,
+		Topics:           []string{rt.appConf.KafkaConfig.PaymentEventTopic, rt.appConf.KafkaConfig.kitchenEventTopic},
+		GroupID:          rt.appConf.KafkaConfig.OrderGroup,
+		AutoCommit:       false,
+	}
+	ctx := context.WithValue(context.Background(), "db", rt.db)
+	consumer := kafka.NewKafkaMessageConsumer(ctx, kafkaConsumerConfig)
+	consumer.StartConsumer(orderService.OrderConsumeEvent)
 
 	return &rt
 }
@@ -62,6 +72,8 @@ func (rt *runtime) Serve() {
 	api := NewApi(rt.appConf, rt.db, rt.logger, rt.orderHandler)
 	rt.registerSignalsHandler(api)
 	api.Run()
+	rt.logger.Info("call here")
+
 }
 
 func (rt *runtime) migrateDB() {
