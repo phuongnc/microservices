@@ -6,7 +6,7 @@ import (
 
 	"infra/common/log"
 	"infra/common/middleware"
-	"order-service/src"
+	"payment-service/src"
 
 	"net/http"
 
@@ -20,12 +20,12 @@ type Api struct {
 	logger *log.Logger
 }
 
-func NewApi(config *AppConfig, gormDB *gorm.DB, logger *log.Logger, orderHandler src.OrderHandler) *Api {
+func NewApi(config *AppConfig, gormDB *gorm.DB, logger *log.Logger, paymentHandler src.PaymentHandler) *Api {
 	a := &Api{
 		config: config,
 		logger: logger,
 	}
-	a.echo = createHttpServer(gormDB, orderHandler, a.logger)
+	a.echo = createHttpServer(gormDB, paymentHandler, a.logger)
 	return a
 }
 
@@ -39,14 +39,14 @@ func (a *Api) Stop() {
 	_ = a.echo.Shutdown(context.Background())
 }
 
-func createHttpServer(gormDB *gorm.DB, orderHandler src.OrderHandler, log *log.Logger) *echo.Echo {
+func createHttpServer(gormDB *gorm.DB, paymentHandler src.PaymentHandler, log *log.Logger) *echo.Echo {
 	e := echo.New()
 	e.GET("/health", healthCheck)
-	path := e.Group("/orders")
+	path := e.Group("/payments")
 
 	e.Use(middleware.HttpDb(gormDB))
 	e.Use(middleware.Cors())
-	orderHandler.RegisterEndpoints(path)
+	paymentHandler.RegisterEndpoints(path)
 	return e
 }
 

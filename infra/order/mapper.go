@@ -5,10 +5,11 @@ func MapOrderToModel(order *OrderDto) *OrderModel {
 		return nil
 	}
 	return &OrderModel{
-		Id:     order.Id,
-		UserId: order.UserId,
-		Amount: order.Amount,
-		Detail: order.Detail,
+		Id:            order.Id,
+		UserId:        order.UserId,
+		Amount:        order.Amount,
+		Detail:        order.Detail,
+		FailureReason: order.FailureReason,
 	}
 }
 
@@ -17,13 +18,15 @@ func mapOrderFromModel(order *OrderModel) *OrderDto {
 		return nil
 	}
 	return &OrderDto{
-		Id:        order.Id,
-		UserId:    order.UserId,
-		Amount:    order.Amount,
-		Detail:    order.Detail,
-		Status:    order.Status,
-		CreatedAt: order.CreatedAt,
-		UpdatedAt: order.UpdatedAt,
+		Id:            order.Id,
+		UserId:        order.UserId,
+		Amount:        order.Amount,
+		Detail:        order.Detail,
+		Status:        order.Status,
+		SubStatus:     order.SubStatus,
+		FailureReason: order.FailureReason,
+		CreatedAt:     order.CreatedAt,
+		UpdatedAt:     order.UpdatedAt,
 	}
 
 }
@@ -33,13 +36,15 @@ func mapOrderToGorm(order *OrderModel) *OrderEntity {
 		return nil
 	}
 	return &OrderEntity{
-		Id:        order.Id,
-		UserId:    order.UserId,
-		Amount:    order.Amount,
-		Detail:    order.Detail,
-		Status:    order.Status,
-		CreatedAt: order.CreatedAt,
-		UpdatedAt: order.UpdatedAt,
+		Id:            order.Id,
+		UserId:        order.UserId,
+		Amount:        order.Amount,
+		Detail:        order.Detail,
+		Status:        order.Status,
+		SubStatus:     order.SubStatus,
+		FailureReason: order.FailureReason,
+		CreatedAt:     order.CreatedAt,
+		UpdatedAt:     order.UpdatedAt,
 	}
 }
 
@@ -48,12 +53,14 @@ func mapOrderFromGorm(order *OrderEntity) *OrderModel {
 		return nil
 	}
 	return &OrderModel{
-		Id:        order.Id,
-		UserId:    order.UserId,
-		Amount:    order.Amount,
-		Detail:    order.Detail,
-		Status:    order.Status,
-		CreatedAt: order.CreatedAt,
-		UpdatedAt: order.UpdatedAt,
+		Id:            order.Id,
+		UserId:        order.UserId,
+		Amount:        order.Amount,
+		Detail:        order.Detail,
+		Status:        order.Status,
+		SubStatus:     order.SubStatus,
+		FailureReason: order.FailureReason,
+		CreatedAt:     order.CreatedAt,
+		UpdatedAt:     order.UpdatedAt,
 	}
 }

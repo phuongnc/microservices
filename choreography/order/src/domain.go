@@ -49,10 +49,20 @@ func (o *orderService) OrderConsumeEvent(ctx context.Context, msg *kafka.Message
 		o.logger.Error("Order is not exist", err)
 		return nil
 	}
-	existingOrder.Status = msgOrder.Status
-	if msgOrder.Status == order.ORDER_PREPARATION_FAILED {
+
+	if msgOrder.Status == order.ORDER_PAYMENT_PAID {
+		existingOrder.SubStatus = msgOrder.Status
+		existingOrder.Status = order.ORDER_PROCESSING
+	} else if msgOrder.Status == order.ORDER_PAYMENT_FAILED {
+		existingOrder.SubStatus = msgOrder.Status
+		existingOrder.Status = order.ORDER_FAILED
+	} else if msgOrder.Status == order.ORDER_KTCHENT_PREPARATION_FAILED {
+		existingOrder.SubStatus = msgOrder.Status
 		existingOrder.Status = order.ORDER_REFUNDING
+	} else {
+		existingOrder.Status = msgOrder.Status
 	}
+
 	existingOrder.UpdatedAt = time.Now()
 	if err := o.orderRepo.UpdateOrder(ctx, existingOrder); err != nil {
 		o.logger.Error("Can not update order", err)

@@ -22,10 +22,9 @@ const (
 	MaxConnectionLifetime = "MAX_CONNECTION_LIFETIME"
 	//kafka
 	BootstrapServers  = "KAFKA_BOOTSTRAP_SERVERS"
-	OrderEventTopic   = "ORDER_EVENT_TOPIC"
-	OrderGroup        = "ORDER_GROUP"
 	PaymentEventTopic = "PAYMENT_EVENT_TOPIC"
-	kitchenEventTopic = "KITCHEN_EVENT_TOPIC"
+	PaymentGroup      = "PAYMENT_GROUP"
+	OrderEventTopic   = "ORDER_EVENT_TOPIC"
 )
 
 type HttpServerConfig struct {
@@ -41,10 +40,9 @@ type AppConfig struct {
 
 type KafkaConfig struct {
 	BootstrapServers  []string
-	OrderEventTopic   string
-	OrderGroup        string
 	PaymentEventTopic string
-	kitchenEventTopic string
+	PaymentGroup      string
+	OrderEventTopic   string
 }
 
 func BuildConfiguration() (*AppConfig, error) {
@@ -57,7 +55,7 @@ func BuildConfiguration() (*AppConfig, error) {
 	return &AppConfig{
 		&HttpServerConfig{
 			envOrDefault(HttpServerHost, "localhost"),
-			envOrDefault(HttpServerPort, "3000"),
+			envOrDefault(HttpServerPort, "3001"),
 		},
 		&db.DatabaseConfig{
 			Uri:                   os.Getenv(DatabaseUri),
@@ -70,9 +68,8 @@ func BuildConfiguration() (*AppConfig, error) {
 		&KafkaConfig{
 			BootstrapServers:  strings.Split(os.Getenv(BootstrapServers), ","),
 			OrderEventTopic:   os.Getenv(OrderEventTopic),
-			OrderGroup:        os.Getenv(OrderGroup),
+			PaymentGroup:      os.Getenv(PaymentGroup),
 			PaymentEventTopic: os.Getenv(PaymentEventTopic),
-			kitchenEventTopic: os.Getenv(kitchenEventTopic),
 		},
 	}, nil
 }

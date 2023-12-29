@@ -10,8 +10,8 @@ import (
 	"infra/common/kafka"
 	logger "infra/common/log"
 
-	"order-service/event"
-	src "order-service/src"
+	"payment-service/event"
+	src "payment-service/src"
 
 	"infra/common/db"
 	"infra/order"
@@ -23,8 +23,8 @@ type runtime struct {
 	appConf        *AppConfig
 	logger         *logger.Logger
 	db             *gorm.DB
-	orderHandler   src.OrderHandler
-	orderPublisher event.OrderPublisher
+	paymentHandler src.PaymentHandler
+	orderPublisher event.PaymentPublisher
 }
 
 func NewRuntime() *runtime {
@@ -43,13 +43,13 @@ func NewRuntime() *runtime {
 	rt.migrateDB()
 
 	orderRepository := order.NewOrderRepo()
-	orderService := src.NewOrderService(rt.logger, orderRepository, rt.orderPublisher)
-	rt.orderHandler = src.NewOrderHandler(rt.logger, orderService)
+	paymentService := src.NewPaymentService(rt.logger, orderRepository, rt.orderPublisher)
+	rt.paymentHandler = src.NewPaymentHandler(rt.logger, paymentService)
 
 	//setup kafka publisher
 	kafkaConfig := &kafka.KafkaProducerConfiguration{
 		BootstrapServers:  rt.appConf.KafkaConfig.BootstrapServers,
-		Topic:             rt.appConf.KafkaConfig.OrderEventTopic,
+		Topic:             rt.appConf.KafkaConfig.PaymentEventTopic,
 		TopicAutoCreation: true,
 	}
 	producer := kafka.NewKafkaMessageProducer(kafkaConfig)
@@ -57,19 +57,19 @@ func NewRuntime() *runtime {
 	//setup kafka consumer
 	kafkaConsumerConfig := &kafka.KafkaConsumerConfiguration{
 		BootstrapServers: rt.appConf.KafkaConfig.BootstrapServers,
-		Topics:           []string{rt.appConf.KafkaConfig.PaymentEventTopic, rt.appConf.KafkaConfig.kitchenEventTopic},
-		GroupID:          rt.appConf.KafkaConfig.OrderGroup,
+		Topics:           []string{rt.appConf.KafkaConfig.OrderEventTopic},
+		GroupID:          rt.appConf.KafkaConfig.PaymentGroup,
 		AutoCommit:       false,
 	}
 	ctx := context.WithValue(context.Background(), "db", rt.db)
 	consumer := kafka.NewKafkaMessageConsumer(ctx, kafkaConsumerConfig)
-	consumer.StartConsumer(orderService.OrderConsumeEvent)
+	consumer.StartConsumer(paymentService.PaymentConsumeEvent)
 
 	return &rt
 }
 
 func (rt *runtime) Serve() {
-	api := NewApi(rt.appConf, rt.db, rt.logger, rt.orderHandler)
+	api := NewApi(rt.appConf, rt.db, rt.logger, rt.paymentHandler)
 	rt.registerSignalsHandler(api)
 	api.Run()
 	rt.logger.Info("call here")
