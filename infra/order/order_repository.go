@@ -3,14 +3,13 @@ package order
 import (
 	"context"
 
-	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
 type OrderRepository interface {
 	CreateOrder(ctx context.Context, order *OrderModel) error
 	UpdateOrder(ctx context.Context, order *OrderModel) error
-	Query(ctx echo.Context) OrderQuery
+	Query(ctx context.Context) OrderQuery
 }
 
 type OrderQuery interface {
@@ -34,14 +33,14 @@ func (repo *orderRepo) CreateOrder(ctx context.Context, o *OrderModel) error {
 }
 
 func (repo *orderRepo) UpdateOrder(ctx context.Context, o *OrderModel) error {
-	// db := ctx.Get("db").(*gorm.DB)
-	// orderGM := mapOrderToGorm(o)
-	// return db.Model(orderGM).Updates(orderGM).Error
+	db := ctx.Value("db").(*gorm.DB)
+	orderGM := mapOrderToGorm(o)
+	return db.Model(orderGM).Updates(orderGM).Error
 	return nil
 }
 
-func (repo *orderRepo) Query(ctx echo.Context) OrderQuery {
-	return &orderQuery{db: ctx.Get("db").(*gorm.DB).Model(&OrderEntity{})}
+func (repo *orderRepo) Query(ctx context.Context) OrderQuery {
+	return &orderQuery{db: ctx.Value("db").(*gorm.DB).Model(&OrderEntity{})}
 }
 
 type orderQuery struct {
