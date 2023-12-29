@@ -20,11 +20,11 @@ import (
 )
 
 type runtime struct {
-	appConf        *AppConfig
-	logger         *logger.Logger
-	db             *gorm.DB
-	paymentHandler src.PaymentHandler
-	orderPublisher event.PaymentPublisher
+	appConf          *AppConfig
+	logger           *logger.Logger
+	db               *gorm.DB
+	paymentHandler   src.PaymentHandler
+	paymentPublisher event.PaymentPublisher
 }
 
 func NewRuntime() *runtime {
@@ -43,7 +43,7 @@ func NewRuntime() *runtime {
 	rt.migrateDB()
 
 	orderRepository := order.NewOrderRepo()
-	paymentService := src.NewPaymentService(rt.logger, orderRepository, rt.orderPublisher)
+	paymentService := src.NewPaymentService(rt.logger, orderRepository, rt.paymentPublisher)
 	rt.paymentHandler = src.NewPaymentHandler(rt.logger, paymentService)
 
 	//setup kafka publisher
@@ -53,7 +53,7 @@ func NewRuntime() *runtime {
 		TopicAutoCreation: true,
 	}
 	producer := kafka.NewKafkaMessageProducer(kafkaConfig)
-	rt.orderPublisher = event.NewOrderPublisher(producer)
+	rt.paymentPublisher = event.NewPaymentPublisher(producer)
 	//setup kafka consumer
 	kafkaConsumerConfig := &kafka.KafkaConsumerConfiguration{
 		BootstrapServers: rt.appConf.KafkaConfig.BootstrapServers,
@@ -88,6 +88,6 @@ func (rt *runtime) registerSignalsHandler(api *Api) {
 		sig := <-sigs
 		log.Printf("Received termination signal: [%s], stopping app", sig)
 		api.Stop()
-		rt.orderPublisher.Destroy()
+		rt.paymentPublisher.Destroy()
 	}()
 }

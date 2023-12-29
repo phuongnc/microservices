@@ -12,7 +12,7 @@ type PaymentPublisher interface {
 	Destroy() error
 }
 
-func NewOrderPublisher(producer kafka.KafkaMessageProducer) PaymentPublisher {
+func NewPaymentPublisher(producer kafka.KafkaMessageProducer) PaymentPublisher {
 	return &paymentPublisher{
 		producer: producer,
 	}
@@ -23,8 +23,8 @@ type paymentPublisher struct {
 }
 
 func (o *paymentPublisher) PublishPaymentEvent(order *order.OrderModel) error {
-	orderEvent, _ := o.producer.BuildMessage(uuid.New().String(), order)
-	return o.producer.PublishMessage(orderEvent)
+	paymentEvent, _ := o.producer.BuildMessage(uuid.New().String(), order)
+	return o.producer.PublishMessage(paymentEvent)
 }
 
 func (o *paymentPublisher) Destroy() error {

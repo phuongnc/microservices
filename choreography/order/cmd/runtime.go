@@ -42,10 +42,6 @@ func NewRuntime() *runtime {
 	}
 	rt.migrateDB()
 
-	orderRepository := order.NewOrderRepo()
-	orderService := src.NewOrderService(rt.logger, orderRepository, rt.orderPublisher)
-	rt.orderHandler = src.NewOrderHandler(rt.logger, orderService)
-
 	//setup kafka publisher
 	kafkaConfig := &kafka.KafkaProducerConfiguration{
 		BootstrapServers:  rt.appConf.KafkaConfig.BootstrapServers,
@@ -63,6 +59,11 @@ func NewRuntime() *runtime {
 	}
 	ctx := context.WithValue(context.Background(), "db", rt.db)
 	consumer := kafka.NewKafkaMessageConsumer(ctx, kafkaConsumerConfig)
+
+	orderRepository := order.NewOrderRepo()
+	orderService := src.NewOrderService(rt.logger, orderRepository, rt.orderPublisher)
+	rt.orderHandler = src.NewOrderHandler(rt.logger, orderService)
+	//start consumer
 	consumer.StartConsumer(orderService.OrderConsumeEvent)
 
 	return &rt
