@@ -13,8 +13,7 @@ import (
 
 type PaymentService interface {
 	PaymentConsumeEvent(c context.Context, msg *kafka.Message) error
-	//CreateOrder(ctx context.Context, order *order.OrderModel) (*order.OrderModel, error)
-	UpdateOrder(ctx context.Context, order *order.OrderModel) (*order.OrderModel, error)
+	UpdateOrderPaymentStatus(ctx context.Context, order *order.OrderModel) (*order.OrderModel, error)
 }
 
 func NewPaymentService(logger *log.Logger, orderRepo order.OrderRepository, paymentPublisher event.PaymentPublisher) PaymentService {
@@ -37,33 +36,25 @@ func (o *paymentService) PaymentConsumeEvent(ctx context.Context, msg *kafka.Mes
 		o.logger.Error("Can not parse order from kafka ", err)
 		return err
 	}
-	if err := o.orderRepo.CreateOrder(ctx, &msgOrder); err != nil {
-		o.logger.Error("Can not save order ", err)
-		return err
+
+	if msgOrder.Status == order.ORDER_CREATED {
+		if err := o.orderRepo.CreateOrder(ctx, &msgOrder); err != nil {
+			o.logger.Error("Can not save order ", err)
+			return err
+		}
+	} else if msgOrder.Status == order.ORDER_REFUNDING {
+		//update order to refunded
+		msgOrder.SubStatus = order.ORDER_REFUNDED
+		_, err := o.UpdateOrderPaymentStatus(ctx, &msgOrder)
+		if err != nil {
+			o.logger.Error("Can not update order payment ", err)
+			return err
+		}
 	}
 	return nil
 }
 
-// func (o *paymentService) CreateOrder(ctx context.Context, obj *order.OrderModel) (*order.OrderModel, error) {
-// 	o.logger.Info("Create new order")
-// 	obj.Id = uuid.New().String()
-// 	obj.CreatedAt = time.Now()
-// 	obj.UpdatedAt = time.Now()
-// 	obj.Status = order.ORDER_CREATED
-// 	if err := o.orderRepo.CreateOrder(ctx, obj); err != nil {
-// 		o.logger.Error("Can not create new order ", err)
-// 		return nil, err
-// 	}
-// 	o.logger.Info("Send event to kafka")
-// 	err := o.paymentPublisher.PublishPaymentEvent(obj)
-// 	if err != nil {
-// 		return nil, err
-
-// 	}
-// 	return obj, nil
-// }
-
-func (o *paymentService) UpdateOrder(ctx context.Context, obj *order.OrderModel) (*order.OrderModel, error) {
+func (o *paymentService) UpdateOrderPaymentStatus(ctx context.Context, obj *order.OrderModel) (*order.OrderModel, error) {
 	// update order
 	existingOrder, err := o.orderRepo.Query(ctx).ById(obj.Id).Result()
 	if err != nil {
@@ -74,13 +65,17 @@ func (o *paymentService) UpdateOrder(ctx context.Context, obj *order.OrderModel)
 		o.logger.Error("Order is not exist", err)
 		return nil, errors.New("Invalid order")
 	}
-	existingOrder.Amount = obj.Amount
-	existingOrder.Detail = obj.Detail
-	existingOrder.Status = obj.Status
-	existingOrder.UserId = obj.UserId
+	existingOrder.SubStatus = obj.SubStatus
+	existingOrder.FailureReason = obj.FailureReason
 	existingOrder.UpdatedAt = time.Now()
 	if err := o.orderRepo.UpdateOrder(ctx, existingOrder); err != nil {
 		o.logger.Error("Can not update order", err)
+		return nil, err
+	}
+	// publish message to payment event
+	err = o.paymentPublisher.PublishPaymentEvent(existingOrder)
+	if err != nil {
+		o.logger.Error("Can not publish payment event ", err)
 		return nil, err
 	}
 	return existingOrder, nil

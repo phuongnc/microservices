@@ -1,9 +1,11 @@
 package src
 
 import (
+	"context"
 	"net/http"
 
 	"infra/common/log"
+	"infra/order"
 
 	"github.com/labstack/echo/v4"
 )
@@ -39,33 +41,35 @@ func (rc *paymentHandler) HealthCheck(c echo.Context) error {
 }
 
 func (rc *paymentHandler) PaymentFailed(c echo.Context) error {
-	// req := &order.OrderDto{}
-	// if err := c.Bind(&req); err != nil {
-	// 	return c.JSON(http.StatusBadRequest, "Invalid Params")
-	// }
+	req := &order.OrderDto{}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid Params")
+	}
 
-	// ctx := context.WithValue(context.Background(), "db", c.Get("db"))
-	// model := order.MapOrderToModel(req)
-	// _, err := rc.paymentService.CreateOrder(ctx, model)
+	req.SubStatus = order.ORDER_PAYMENT_FAILED
+	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
+	model := order.MapOrderToModel(req)
+	_, err := rc.paymentService.UpdateOrderPaymentStatus(ctx, model)
 
-	// if err != nil {
-	// 	return c.JSON(http.StatusInternalServerError, "Internal Server Error")
-	// }
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
+	}
 	return c.JSON(http.StatusOK, nil)
 }
 
 func (rc *paymentHandler) PaymentSuccess(c echo.Context) error {
-	// req := &order.OrderDto{}
-	// if err := c.Bind(&req); err != nil {
-	// 	return c.JSON(http.StatusBadRequest, "Invalid Params")
-	// }
+	req := &order.OrderDto{}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid Params")
+	}
 
-	// ctx := context.WithValue(context.Background(), "db", c.Get("db"))
-	// model := order.MapOrderToModel(req)
-	// _, err := rc.paymentService.CreateOrder(ctx, model)
+	req.SubStatus = order.ORDER_PAYMENT_PAID
+	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
+	model := order.MapOrderToModel(req)
+	_, err := rc.paymentService.UpdateOrderPaymentStatus(ctx, model)
 
-	// if err != nil {
-	// 	return c.JSON(http.StatusInternalServerError, "Internal Server Error")
-	// }
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
+	}
 	return c.JSON(http.StatusOK, nil)
 }

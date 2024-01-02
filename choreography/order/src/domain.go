@@ -50,17 +50,15 @@ func (o *orderService) OrderConsumeEvent(ctx context.Context, msg *kafka.Message
 		return nil
 	}
 
-	if msgOrder.Status == order.ORDER_PAYMENT_PAID {
-		existingOrder.SubStatus = msgOrder.Status
+	existingOrder.SubStatus = msgOrder.SubStatus
+	if existingOrder.SubStatus == order.ORDER_PAYMENT_PAID {
 		existingOrder.Status = order.ORDER_PROCESSING
-	} else if msgOrder.Status == order.ORDER_PAYMENT_FAILED {
-		existingOrder.SubStatus = msgOrder.Status
+	} else if existingOrder.SubStatus == order.ORDER_PAYMENT_FAILED {
 		existingOrder.Status = order.ORDER_FAILED
-	} else if msgOrder.Status == order.ORDER_KTCHENT_PREPARATION_FAILED {
-		existingOrder.SubStatus = msgOrder.Status
+	} else if existingOrder.SubStatus == order.ORDER_KTCHENT_PREPARATION_FAILED {
 		existingOrder.Status = order.ORDER_REFUNDING
-	} else {
-		existingOrder.Status = msgOrder.Status
+	} else if existingOrder.SubStatus == order.ORDER_REFUNDED {
+		existingOrder.Status = order.ORDER_FAILED
 	}
 
 	existingOrder.UpdatedAt = time.Now()
