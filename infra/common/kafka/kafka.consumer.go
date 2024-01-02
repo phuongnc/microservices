@@ -97,8 +97,7 @@ func (k *kafkaMessageConsumer) startConsumerManualCommit(handlerFunc ConsumerHan
 			case <-stopSync:
 				return
 			default:
-				ctx := context.Background()
-				kMsg, err := k.reader.FetchMessage(ctx)
+				kMsg, err := k.reader.FetchMessage(k.context)
 				if err != nil {
 					if err == io.EOF {
 						fmt.Printf("Kafka consumer is closed")
@@ -113,12 +112,12 @@ func (k *kafkaMessageConsumer) startConsumerManualCommit(handlerFunc ConsumerHan
 					Key:       string(kMsg.Key),
 					Data:      kMsg.Value,
 				}
-				if pErr := handlerFunc(ctx, msg); pErr != nil {
+				if pErr := handlerFunc(k.context, msg); pErr != nil {
 					// TODO handle errors ? - check specific errors
 					// when error occurs I'm not doing the commit! as I need message do be redelivered and processed!
 					continue
 				}
-				k.reader.CommitMessages(context.Background(), kMsg)
+				k.reader.CommitMessages(k.context, kMsg)
 
 			}
 		}

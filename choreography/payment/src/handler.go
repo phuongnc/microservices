@@ -46,9 +46,12 @@ func (rc *paymentHandler) PaymentFailed(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid Params")
 	}
 
-	req.SubStatus = order.ORDER_PAYMENT_FAILED
+	model := &order.OrderModel{
+		Id:            req.Id,
+		SubStatus:     order.ORDER_PAYMENT_FAILED,
+		FailureReason: req.FailureReason,
+	}
 	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
-	model := order.MapOrderToModel(req)
 	_, err := rc.paymentService.UpdateOrderPaymentStatus(ctx, model)
 
 	if err != nil {
@@ -65,7 +68,10 @@ func (rc *paymentHandler) PaymentSuccess(c echo.Context) error {
 
 	req.SubStatus = order.ORDER_PAYMENT_PAID
 	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
-	model := order.MapOrderToModel(req)
+	model := &order.OrderModel{
+		Id:        req.Id,
+		SubStatus: order.ORDER_PAYMENT_PAID,
+	}
 	_, err := rc.paymentService.UpdateOrderPaymentStatus(ctx, model)
 
 	if err != nil {

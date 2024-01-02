@@ -61,6 +61,7 @@ func (o *orderService) OrderConsumeEvent(ctx context.Context, msg *kafka.Message
 		existingOrder.Status = order.ORDER_FAILED
 	}
 
+	existingOrder.FailureReason = msgOrder.FailureReason
 	existingOrder.UpdatedAt = time.Now()
 	if err := o.orderRepo.UpdateOrder(ctx, existingOrder); err != nil {
 		o.logger.Error("Can not update order", err)

@@ -42,10 +42,6 @@ func NewRuntime() *runtime {
 	}
 	rt.migrateDB()
 
-	orderRepository := order.NewOrderRepo()
-	paymentService := src.NewPaymentService(rt.logger, orderRepository, rt.paymentPublisher)
-	rt.paymentHandler = src.NewPaymentHandler(rt.logger, paymentService)
-
 	//setup kafka publisher
 	kafkaConfig := &kafka.KafkaProducerConfiguration{
 		BootstrapServers:  rt.appConf.KafkaConfig.BootstrapServers,
@@ -54,6 +50,12 @@ func NewRuntime() *runtime {
 	}
 	producer := kafka.NewKafkaMessageProducer(kafkaConfig)
 	rt.paymentPublisher = event.NewPaymentPublisher(producer)
+
+	// init service handler
+	orderRepository := order.NewOrderRepo()
+	paymentService := src.NewPaymentService(rt.logger, orderRepository, rt.paymentPublisher)
+	rt.paymentHandler = src.NewPaymentHandler(rt.logger, paymentService)
+
 	//setup kafka consumer
 	kafkaConsumerConfig := &kafka.KafkaConsumerConfiguration{
 		BootstrapServers: rt.appConf.KafkaConfig.BootstrapServers,
