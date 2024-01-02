@@ -1,7 +1,8 @@
 package main
 
-import "fmt"
+import "kitchen-service/cmd"
 
 func main() {
-	fmt.Println("Starting kitchen service")
+	runtime := cmd.NewRuntime()
+	runtime.Serve()
 }
