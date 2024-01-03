@@ -8,6 +8,7 @@ const (
 	ORDER_REFUNDED   string = "ORDER_REFUNDED"
 	ORDER_DELIVERED  string = "ORDER_DELIVERED"
 	ORDER_FAILED     string = "ORDER_FAILED"
+	ORDER_DONE       string = "ORDER_DONE"
 	// order substatus
 	ORDER_PAYMENT_PAID               string = "ORDER_PAYMENT_PAID"
 	ORDER_PAYMENT_FAILED             string = "ORDER_PAYMENT_FAILED"

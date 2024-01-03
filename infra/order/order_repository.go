@@ -36,7 +36,6 @@ func (repo *orderRepo) UpdateOrder(ctx context.Context, o *OrderModel) error {
 	db := ctx.Value("db").(*gorm.DB)
 	orderGM := mapOrderToGorm(o)
 	return db.Model(orderGM).Updates(orderGM).Error
-	return nil
 }
 
 func (repo *orderRepo) Query(ctx context.Context) OrderQuery {

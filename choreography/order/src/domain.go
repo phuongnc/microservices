@@ -3,7 +3,6 @@ package src
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"infra/common/kafka"
 	"infra/common/log"
 	"infra/order"
@@ -16,7 +15,7 @@ import (
 type OrderService interface {
 	OrderConsumeEvent(c context.Context, msg *kafka.Message) error
 	CreateOrder(ctx context.Context, order *order.OrderModel) (*order.OrderModel, error)
-	UpdateOrder(ctx context.Context, order *order.OrderModel) (*order.OrderModel, error)
+	//UpdateOrder(ctx context.Context, order *order.OrderModel) (*order.OrderModel, error)
 }
 
 func NewOrderService(logger *log.Logger, orderRepo order.OrderRepository, orderPublisher event.OrderPublisher) OrderService {
@@ -94,25 +93,25 @@ func (o *orderService) CreateOrder(ctx context.Context, obj *order.OrderModel) (
 	return obj, nil
 }
 
-func (o *orderService) UpdateOrder(ctx context.Context, obj *order.OrderModel) (*order.OrderModel, error) {
-	// update order
-	existingOrder, err := o.orderRepo.Query(ctx).ById(obj.Id).Result()
-	if err != nil {
-		o.logger.Error("Can not get order by Id ", err)
-		return nil, err
-	}
-	if existingOrder == nil {
-		o.logger.Error("Order is not exist", err)
-		return nil, errors.New("Invalid order")
-	}
-	existingOrder.Amount = obj.Amount
-	existingOrder.Detail = obj.Detail
-	existingOrder.Status = obj.Status
-	existingOrder.UserId = obj.UserId
-	existingOrder.UpdatedAt = time.Now()
-	if err := o.orderRepo.UpdateOrder(ctx, existingOrder); err != nil {
-		o.logger.Error("Can not update order", err)
-		return nil, err
-	}
-	return existingOrder, nil
-}
+// func (o *orderService) UpdateOrder(ctx context.Context, obj *order.OrderModel) (*order.OrderModel, error) {
+// 	// update order
+// 	existingOrder, err := o.orderRepo.Query(ctx).ById(obj.Id).Result()
+// 	if err != nil {
+// 		o.logger.Error("Can not get order by Id ", err)
+// 		return nil, err
+// 	}
+// 	if existingOrder == nil {
+// 		o.logger.Error("Order is not exist", err)
+// 		return nil, errors.New("Invalid order")
+// 	}
+// 	existingOrder.Amount = obj.Amount
+// 	existingOrder.Detail = obj.Detail
+// 	existingOrder.Status = obj.Status
+// 	existingOrder.UserId = obj.UserId
+// 	existingOrder.UpdatedAt = time.Now()
+// 	if err := o.orderRepo.UpdateOrder(ctx, existingOrder); err != nil {
+// 		o.logger.Error("Can not update order", err)
+// 		return nil, err
+// 	}
+// 	return existingOrder, nil
+// }

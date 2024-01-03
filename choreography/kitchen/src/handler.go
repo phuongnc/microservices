@@ -12,7 +12,8 @@ import (
 
 type KitchenHandler interface {
 	RegisterEndpoints(echo *echo.Group)
-	CreateOrder(c echo.Context) error
+	prepareOrderFailed(c echo.Context) error
+	prepareOrderSuccess(c echo.Context) error
 }
 
 func NewKitchenHandler(
@@ -31,22 +32,46 @@ type kitchenHandler struct {
 }
 
 func (rc *kitchenHandler) RegisterEndpoints(echo *echo.Group) {
-	echo.POST("", rc.CreateOrder)
+	echo.POST("/failed", rc.prepareOrderFailed)
+	echo.POST("/success", rc.prepareOrderSuccess)
 }
 
 func (rc *kitchenHandler) HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, "Ok")
 }
 
-func (rc *kitchenHandler) CreateOrder(c echo.Context) error {
+func (rc *kitchenHandler) prepareOrderFailed(c echo.Context) error {
+	req := &order.OrderDto{}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid Params")
+	}
+
+	model := &order.OrderModel{
+		Id:            req.Id,
+		SubStatus:     order.ORDER_KTCHENT_PREPARATION_FAILED,
+		FailureReason: req.FailureReason,
+	}
+	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
+	_, err := rc.kitchenService.UpdateOrderKitchenStatus(ctx, model)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
+	}
+	return c.JSON(http.StatusOK, nil)
+}
+
+func (rc *kitchenHandler) prepareOrderSuccess(c echo.Context) error {
 	req := &order.OrderDto{}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid Params")
 	}
 
 	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
-	model := order.MapOrderToModel(req)
-	_, err := rc.kitchenService.CreateOrder(ctx, model)
+	model := &order.OrderModel{
+		Id:        req.Id,
+		SubStatus: order.ORDER_DELIVERED,
+	}
+	_, err := rc.kitchenService.UpdateOrderKitchenStatus(ctx, model)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "Internal Server Error")

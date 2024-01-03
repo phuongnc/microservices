@@ -9,11 +9,15 @@ func MapOrderToModel(order *OrderDto) *OrderModel {
 		UserId:        order.UserId,
 		Amount:        order.Amount,
 		Detail:        order.Detail,
+		Status:        order.Status,
+		SubStatus:     order.SubStatus,
 		FailureReason: order.FailureReason,
+		CreatedAt:     order.CreatedAt,
+		UpdatedAt:     order.UpdatedAt,
 	}
 }
 
-func mapOrderFromModel(order *OrderModel) *OrderDto {
+func MapOrderFromModel(order *OrderModel) *OrderDto {
 	if order == nil {
 		return nil
 	}

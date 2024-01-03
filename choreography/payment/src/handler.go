@@ -12,8 +12,8 @@ import (
 
 type PaymentHandler interface {
 	RegisterEndpoints(echo *echo.Group)
-	PaymentFailed(c echo.Context) error
-	PaymentSuccess(c echo.Context) error
+	paymentFailed(c echo.Context) error
+	paymentSuccess(c echo.Context) error
 }
 
 func NewPaymentHandler(
@@ -32,15 +32,15 @@ type paymentHandler struct {
 }
 
 func (rc *paymentHandler) RegisterEndpoints(echo *echo.Group) {
-	echo.POST("/failed", rc.PaymentFailed)
-	echo.POST("/success", rc.PaymentSuccess)
+	echo.POST("/failed", rc.paymentFailed)
+	echo.POST("/success", rc.paymentSuccess)
 }
 
 func (rc *paymentHandler) HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, "Ok")
 }
 
-func (rc *paymentHandler) PaymentFailed(c echo.Context) error {
+func (rc *paymentHandler) paymentFailed(c echo.Context) error {
 	req := &order.OrderDto{}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid Params")
@@ -60,13 +60,12 @@ func (rc *paymentHandler) PaymentFailed(c echo.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-func (rc *paymentHandler) PaymentSuccess(c echo.Context) error {
+func (rc *paymentHandler) paymentSuccess(c echo.Context) error {
 	req := &order.OrderDto{}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid Params")
 	}
 
-	req.SubStatus = order.ORDER_PAYMENT_PAID
 	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
 	model := &order.OrderModel{
 		Id:        req.Id,
