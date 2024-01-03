@@ -49,6 +49,7 @@ func (rc *paymentHandler) paymentFailed(c echo.Context) error {
 
 	model := &order.OrderModel{
 		Id:            req.Id,
+		Status:        order.ORDER_FAILED,
 		SubStatus:     order.ORDER_PAYMENT_FAILED,
 		FailureReason: req.FailureReason,
 	}
@@ -70,6 +71,7 @@ func (rc *paymentHandler) paymentSuccess(c echo.Context) error {
 	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
 	model := &order.OrderModel{
 		Id:        req.Id,
+		Status:    order.ORDER_PROCESSING,
 		SubStatus: order.ORDER_PAYMENT_PAID,
 	}
 	_, err := rc.paymentService.UpdateOrderPaymentStatus(ctx, model)

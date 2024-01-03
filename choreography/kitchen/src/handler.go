@@ -50,6 +50,7 @@ func (rc *kitchenHandler) prepareOrderFailed(c echo.Context) error {
 
 	model := &order.OrderModel{
 		Id:            req.Id,
+		Status:        order.ORDER_FAILED,
 		SubStatus:     order.ORDER_KTCHENT_PREPARATION_FAILED,
 		FailureReason: req.FailureReason,
 	}
@@ -71,6 +72,7 @@ func (rc *kitchenHandler) prepareOrderSuccess(c echo.Context) error {
 	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
 	model := &order.OrderModel{
 		Id:        req.Id,
+		Status:    order.ORDER_DONE,
 		SubStatus: order.ORDER_DELIVERED,
 	}
 	_, err := rc.kitchenService.UpdateOrderKitchenStatus(ctx, model)

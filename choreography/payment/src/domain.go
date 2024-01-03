@@ -66,6 +66,12 @@ func (o *paymentService) UpdateOrderPaymentStatus(ctx context.Context, obj *orde
 		o.logger.Error("Order is not exist", err)
 		return nil, errors.New("Invalid order")
 	}
+
+	if existingOrder.Status != order.ORDER_CREATED || existingOrder.Status != order.ORDER_REFUNDING {
+		return nil, errors.New("Order has been processed")
+	}
+
+	existingOrder.Status = obj.Status
 	existingOrder.SubStatus = obj.SubStatus
 	existingOrder.FailureReason = obj.FailureReason
 	existingOrder.UpdatedAt = time.Now()
