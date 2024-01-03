@@ -69,7 +69,7 @@ func BuildConfiguration() (*AppConfig, error) {
 		&KafkaConfig{
 			BootstrapServers:  strings.Split(os.Getenv(BootstrapServers), ","),
 			KitchenEventTopic: os.Getenv(KitchenEventTopic),
-			PaymentEventTopic: os.Getenv(OrderEventTopic),
+			PaymentEventTopic: os.Getenv(PaymentEventTopic),
 			KitchenGroup:      os.Getenv(KitchenGroup),
 		},
 	}, nil

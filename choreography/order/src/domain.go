@@ -58,6 +58,8 @@ func (o *orderService) OrderConsumeEvent(ctx context.Context, msg *kafka.Message
 		existingOrder.Status = order.ORDER_REFUNDING
 	} else if existingOrder.SubStatus == order.ORDER_REFUNDED {
 		existingOrder.Status = order.ORDER_FAILED
+	} else if existingOrder.SubStatus == order.ORDER_DELIVERED {
+		existingOrder.Status = order.ORDER_DONE
 	}
 
 	existingOrder.FailureReason = msgOrder.FailureReason
