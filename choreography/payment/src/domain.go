@@ -14,6 +14,7 @@ import (
 type PaymentService interface {
 	PaymentConsumeEvent(c context.Context, msg *kafka.Message) error
 	UpdateOrderPaymentStatus(ctx context.Context, order *order.OrderModel) (*order.OrderModel, error)
+	GetOrder(ctx context.Context, orderId string) (*order.OrderModel, error)
 }
 
 func NewPaymentService(logger *log.Logger, orderRepo order.OrderRepository, paymentPublisher event.PaymentPublisher) PaymentService {
@@ -79,4 +80,8 @@ func (o *paymentService) UpdateOrderPaymentStatus(ctx context.Context, obj *orde
 		return nil, err
 	}
 	return existingOrder, nil
+}
+
+func (o *paymentService) GetOrder(ctx context.Context, orderId string) (*order.OrderModel, error) {
+	return o.orderRepo.Query(ctx).ById(orderId).Result()
 }

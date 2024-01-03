@@ -14,6 +14,7 @@ type KitchenHandler interface {
 	RegisterEndpoints(echo *echo.Group)
 	prepareOrderFailed(c echo.Context) error
 	prepareOrderSuccess(c echo.Context) error
+	getOrder(c echo.Context) error
 }
 
 func NewKitchenHandler(
@@ -34,6 +35,7 @@ type kitchenHandler struct {
 func (rc *kitchenHandler) RegisterEndpoints(echo *echo.Group) {
 	echo.POST("/failed", rc.prepareOrderFailed)
 	echo.POST("/success", rc.prepareOrderSuccess)
+	echo.GET("/orders/:orderId", rc.getOrder)
 }
 
 func (rc *kitchenHandler) HealthCheck(c echo.Context) error {
@@ -77,4 +79,21 @@ func (rc *kitchenHandler) prepareOrderSuccess(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
 	}
 	return c.JSON(http.StatusOK, nil)
+}
+
+func (rc *kitchenHandler) getOrder(c echo.Context) error {
+	orderId := c.Param("orderId")
+	if orderId == "" {
+		return c.JSON(http.StatusBadRequest, "Invalid Params")
+	}
+	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
+	existingOrder, err := rc.kitchenService.GetOrder(ctx, orderId)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
+	}
+	if existingOrder == nil {
+		return c.JSON(http.StatusNotFound, "Order is not exist")
+	}
+	return c.JSON(http.StatusOK, order.MapOrderFromModel(existingOrder))
 }

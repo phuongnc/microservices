@@ -57,17 +57,18 @@ func (rc *orderHandler) createOrder(c echo.Context) error {
 }
 
 func (rc *orderHandler) getOrder(c echo.Context) error {
-	req := &order.OrderDto{}
-	if err := c.Bind(&req); err != nil {
+	orderId := c.Param("orderId")
+	if orderId == "" {
 		return c.JSON(http.StatusBadRequest, "Invalid Params")
 	}
-
 	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
-	model := order.MapOrderToModel(req)
-	newOrder, err := rc.orderService.CreateOrder(ctx, model)
+	existingOrder, err := rc.orderService.GetOrder(ctx, orderId)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
 	}
-	return c.JSON(http.StatusOK, order.MapOrderFromModel(newOrder))
+	if existingOrder == nil {
+		return c.JSON(http.StatusNotFound, "Order is not exist")
+	}
+	return c.JSON(http.StatusOK, order.MapOrderFromModel(existingOrder))
 }

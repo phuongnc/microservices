@@ -34,6 +34,7 @@ type paymentHandler struct {
 func (rc *paymentHandler) RegisterEndpoints(echo *echo.Group) {
 	echo.POST("/failed", rc.paymentFailed)
 	echo.POST("/success", rc.paymentSuccess)
+	echo.GET("/orders/:orderId", rc.getOrder)
 }
 
 func (rc *paymentHandler) HealthCheck(c echo.Context) error {
@@ -77,4 +78,21 @@ func (rc *paymentHandler) paymentSuccess(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
 	}
 	return c.JSON(http.StatusOK, nil)
+}
+
+func (rc *paymentHandler) getOrder(c echo.Context) error {
+	orderId := c.Param("orderId")
+	if orderId == "" {
+		return c.JSON(http.StatusBadRequest, "Invalid Params")
+	}
+	ctx := context.WithValue(context.Background(), "db", c.Get("db"))
+	existingOrder, err := rc.paymentService.GetOrder(ctx, orderId)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Internal Server Error")
+	}
+	if existingOrder == nil {
+		return c.JSON(http.StatusNotFound, "Order is not exist")
+	}
+	return c.JSON(http.StatusOK, order.MapOrderFromModel(existingOrder))
 }

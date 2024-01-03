@@ -14,6 +14,7 @@ import (
 type KitchenService interface {
 	PaymentConsumeEvent(c context.Context, msg *kafka.Message) error
 	UpdateOrderKitchenStatus(ctx context.Context, obj *order.OrderModel) (*order.OrderModel, error)
+	GetOrder(ctx context.Context, orderId string) (*order.OrderModel, error)
 }
 
 func NewKitchenService(logger *log.Logger, orderRepo order.OrderRepository, kitchenPublisher event.KitchenPublisher) KitchenService {
@@ -70,4 +71,8 @@ func (o *kitchenService) UpdateOrderKitchenStatus(ctx context.Context, obj *orde
 		return nil, err
 	}
 	return existingOrder, nil
+}
+
+func (o *kitchenService) GetOrder(ctx context.Context, orderId string) (*order.OrderModel, error) {
+	return o.orderRepo.Query(ctx).ById(orderId).Result()
 }
