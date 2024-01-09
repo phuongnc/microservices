@@ -57,6 +57,7 @@ func (o *kitchenService) UpdateOrderKitchenStatus(ctx context.Context, obj *orde
 		o.logger.Error("Order is not exist", err)
 		return nil, errors.New("Invalid order")
 	}
+	existingOrder.Status = obj.Status
 	existingOrder.SubStatus = obj.SubStatus
 	existingOrder.FailureReason = obj.FailureReason
 	existingOrder.UpdatedAt = time.Now()
@@ -65,6 +66,7 @@ func (o *kitchenService) UpdateOrderKitchenStatus(ctx context.Context, obj *orde
 		return nil, err
 	}
 	// publish message to payment event
+	o.logger.Info("KITCHEN send event " + obj.SubStatus)
 	err = o.kitchenPublisher.PublishKitchenEvent(existingOrder)
 	if err != nil {
 		o.logger.Error("Can not publish kitchen event ", err)

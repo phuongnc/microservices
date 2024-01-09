@@ -67,10 +67,6 @@ func (o *paymentService) UpdateOrderPaymentStatus(ctx context.Context, obj *orde
 		return nil, errors.New("Invalid order")
 	}
 
-	if existingOrder.Status != order.ORDER_CREATED || existingOrder.Status != order.ORDER_REFUNDING {
-		return nil, errors.New("Order has been processed")
-	}
-
 	existingOrder.Status = obj.Status
 	existingOrder.SubStatus = obj.SubStatus
 	existingOrder.FailureReason = obj.FailureReason
@@ -80,6 +76,7 @@ func (o *paymentService) UpdateOrderPaymentStatus(ctx context.Context, obj *orde
 		return nil, err
 	}
 	// publish message to payment event
+	o.logger.Info("PAYMENT send event " + obj.SubStatus)
 	err = o.paymentPublisher.PublishPaymentEvent(existingOrder)
 	if err != nil {
 		o.logger.Error("Can not publish payment event ", err)

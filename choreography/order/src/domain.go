@@ -70,7 +70,7 @@ func (o *orderService) OrderConsumeEvent(ctx context.Context, msg *kafka.Message
 	}
 	// incase need refund payment, publish order update event
 	if existingOrder.Status == order.ORDER_REFUNDING {
-		o.logger.Info("Send event to kafka")
+		o.logger.Info("ORDER publish event ORDER_REFUNDING")
 		return o.orderPublisher.PublishOrderEvent(existingOrder)
 	}
 	return nil
@@ -86,7 +86,7 @@ func (o *orderService) CreateOrder(ctx context.Context, obj *order.OrderModel) (
 		o.logger.Error("Can not create new order ", err)
 		return nil, err
 	}
-	o.logger.Info("Send event to kafka")
+	o.logger.Info("ORDER publish event ORDER_CREATED")
 	err := o.orderPublisher.PublishOrderEvent(obj)
 	if err != nil {
 		return nil, err

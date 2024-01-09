@@ -36,8 +36,8 @@ func (k *kafkaMessageConsumer) initialize() {
 		GroupTopics:    c.Topics,
 		MaxBytes:       10e6,
 		CommitInterval: 1,
-		Logger:         kafka.LoggerFunc(KafkaPrintLogger),
-		ErrorLogger:    kafka.LoggerFunc(KafkaPrintLogger),
+		//Logger:         kafka.LoggerFunc(KafkaPrintLogger),
+		ErrorLogger: kafka.LoggerFunc(KafkaPrintLogger),
 	})
 	k.reader = reader
 }

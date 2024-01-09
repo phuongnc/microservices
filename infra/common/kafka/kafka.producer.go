@@ -37,8 +37,8 @@ func (k *kafkaMessageProducer) initialize() {
 		WriteTimeout:           time.Second * 5,
 		Async:                  false,               // important! Use this only if you don't care about guarantees of whether the messages were written to kafka.
 		AllowAutoTopicCreation: c.TopicAutoCreation, // important - need to handler errors
-		Logger:                 kafka.LoggerFunc(KafkaPrintLogger),
-		ErrorLogger:            kafka.LoggerFunc(KafkaPrintLogger),
+		//Logger:                 kafka.LoggerFunc(KafkaPrintLogger),
+		ErrorLogger: kafka.LoggerFunc(KafkaPrintLogger),
 	}
 	k.writer = w
 }
